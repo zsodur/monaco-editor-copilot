@@ -16,7 +16,8 @@
   "scripts": {
     "start": "tsdx watch  --format cjs,esm,umd",
     "build": "tsdx build --target es5",
-    "test": "tsdx test  --watchAll",
+    "test": "tsdx test",
+    "test:watch": "tsdx test --watchAll",
     "lint": "tsdx lint",
     "prepare": "tsdx build",
     "size": "size-limit",
