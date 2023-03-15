@@ -10,7 +10,13 @@ interface OpenaiParams {
   stop?: Array<string>;
 }
 
-type CursorStyle = 'line' | 'block' | 'underline' | 'line-thin' | 'block-outline' | 'underline-thin'
+type CursorStyle =
+  | 'line'
+  | 'block'
+  | 'underline'
+  | 'line-thin'
+  | 'block-outline'
+  | 'underline-thin';
 
 export interface Config {
   openaiKey?: string;
@@ -140,14 +146,14 @@ const MonacoEditorCopilot = (
   };
 
   const cursorStyleLoading = () => {
-    editor.updateOptions({ cursorStyle: mergedConfig.cursorStyleLoading  });
+    editor.updateOptions({ cursorStyle: mergedConfig.cursorStyleLoading });
   };
 
   const cursorStyleNormal = () => {
     editor.updateOptions({ cursorStyle: mergedConfig.cursorStyleNormal });
   };
 
-  cursorStyleNormal()
+  cursorStyleNormal();
 
   let controller: AbortController | null = null;
 
@@ -165,7 +171,13 @@ const MonacoEditorCopilot = (
     contextMenuOrder: 1.5,
     run: async () => {
       controller = new AbortController();
-      await handleCompletion(editor, mergedConfig, controller, cursorStyleLoading, cursorStyleNormal);
+      await handleCompletion(
+        editor,
+        mergedConfig,
+        controller,
+        cursorStyleLoading,
+        cursorStyleNormal
+      );
     },
   };
 
