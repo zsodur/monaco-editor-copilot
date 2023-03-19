@@ -41,6 +41,10 @@ const config = {
 const dispose = MonacoEditorCopilot(editor, config);
 ```
 
+#### Keyboard Shortcut
+
+Monaco Editor Copilot provides a keyboard shortcut to trigger the code completion feature. The keyboard shortcut is **Ctrl + B (or Cmd + B on macOS)**.
+
 #### More Examples
 ```javascript
 //  with custom openaiParams
@@ -72,9 +76,7 @@ const config = {
 }
 ```
 
-## Keyboard Shortcut
 
-Monaco Editor Copilot provides a keyboard shortcut to trigger the code completion feature. The keyboard shortcut is **Ctrl + B (or Cmd + B on macOS)**.
 
 ## Configuration Options
 
