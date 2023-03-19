@@ -41,13 +41,44 @@ const config = {
 const dispose = MonacoEditorCopilot(editor, config);
 ```
 
+#### More Examples
+```javascript
+//  with custom openaiParams
+const config =  {
+  openaiKey: 'your_openai_api_key',
+  openaiParams: {
+    model: 'code-davinci-002',
+    temperature: 0.8,
+    max_tokens: 64,
+  },
+}
+
+//  with custom cursorStyle
+const config = {
+  openaiKey: 'your_openai_api_key',
+  cursorStyleLoading: 'block-outline',
+  cursorStyleNormal: 'block',
+}
+
+//  with customCompletionFunction
+const config = {
+  customCompletionFunction: async (code) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve('// example with customCompletionFunction\n');
+      }, 1000);
+    });
+  },
+}
+```
+
 ## Keyboard Shortcut
 
-Monaco Editor Copilot provides a keyboard shortcut to trigger the code completion feature. The keyboard shortcut is Ctrl + B (or Cmd + B on macOS).
+Monaco Editor Copilot provides a keyboard shortcut to trigger the code completion feature. The keyboard shortcut is **Ctrl + B (or Cmd + B on macOS)**.
 
 ## Configuration Options
 
-The following options can be passed to the Config object:
+#### The following options can be passed to the Config object:
 
 | Option                     | Type                              | Description                                                  | Default                  |
 | -------------------------- | --------------------------------- | ------------------------------------------------------------ | ------------------------ |
@@ -59,7 +90,7 @@ The following options can be passed to the Config object:
 | `cursorStyleLoading`       | string                            | Cursor style during completion loading (optional).           | 'underline'              |
 | `cursorStyleNormal`        | string                            | Cursor style when not loading completions (optional).        | 'line'                   |
 
-The following options can be passed to the OpenaiParams object:
+#### The following options can be passed to the OpenaiParams object:
 | Parameter | Type | Description | Default |
 |-----------------------|---------|-----------------------------------------------------------------|-----------------------|
 | `model` | string | The name of the OpenAI model to use for code completions. | 'code-davinci-002' |
