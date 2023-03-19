@@ -45,6 +45,17 @@ const dispose = MonacoEditorCopilot(editor, config);
 
 Monaco Editor Copilot provides a keyboard shortcut to trigger the code completion feature. The keyboard shortcut is **Ctrl + B (or Cmd + B on macOS)**.
 
+#### Disabling Copilot
+
+If you need to disable the Copilot functionality, you can call the dispose function:
+
+```javascript
+dispose();
+```
+
+This will remove the Copilot functionality and clean up any associated resources.
+
+
 #### More Examples
 ```javascript
 //  with custom openaiParams
@@ -103,15 +114,6 @@ const config = {
 | `presence_penalty` | number | Penalizes new tokens based on their presence in the input. | 0.0 |
 | `stop` | Array<string> | A list of strings where the API will stop generating tokens. | |
 
-## Disabling Copilot
-
-If you need to disable the Copilot functionality, you can call the dispose function:
-
-```javascript
-dispose();
-```
-
-This will remove the Copilot functionality and clean up any associated resources.
 
 ## License
 
