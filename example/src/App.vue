@@ -27,7 +27,6 @@ const config = [
     testName: 'example with custom openaiParams',
     openaiKey: key,
     openaiParams: {
-      model: 'code-davinci-002',
       temperature: 0.8,
       max_tokens: 64,
     },
@@ -36,6 +35,11 @@ const config = [
     testName: 'example with custom maxCodeLinesToOpenai',
     openaiKey: key,
     maxCodeLinesToOpenai: 2,
+  },
+  {
+    testName: 'example with custom assistant message',
+    openaiKey: key,
+    assistantMessage: 'use typescript',
   },
   {
     testName: 'example with custom cursorStyle',
