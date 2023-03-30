@@ -29,9 +29,9 @@ export interface Config {
 }
 
 export const defaultOpenaiParams: OpenaiParams = {
-  model: 'code-davinci-002',
+  model: 'gpt-3.5-turbo-0301',
   temperature: 0,
-  max_tokens: 32,
+  max_tokens: 64,
   top_p: 1.0,
   frequency_penalty: 0.0,
   presence_penalty: 0.0,
@@ -45,19 +45,30 @@ export const defaultConfig: Config = {
   cursorStyleNormal: 'line',
 };
 
+function minimizeWhitespace(code:string) {
+  return code
+    .split('\n')
+    .map((line:string) => line.trim())
+    .join('\n');
+}
+
 async function fetchCompletionFromOpenAI(
   code: string,
   config: Config,
   controller: AbortController
 ): Promise<string> {
-  const response = await fetch(`${config.openaiUrl}/v1/completions`, {
+
+  const response = await fetch(`${config.openaiUrl}/v1/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       authorization: `Bearer ${config.openaiKey}`,
     },
     body: JSON.stringify({
-      prompt: code,
+      messages: [
+        {role: "assistant", content: "你是一个代码补全器, 帮我简短地补全这段代码的结尾部分, 请智能结束补全, 只需给出补全的代码, 不需要任何解释"},
+        {role: "user", content: minimizeWhitespace(code)},
+      ],
       ...config.openaiParams,
     }),
     signal: controller.signal,
@@ -68,7 +79,7 @@ async function fetchCompletionFromOpenAI(
   }
 
   const responseJson = await response.json();
-  return responseJson?.choices?.[0]?.text || '';
+  return responseJson?.choices?.[0]?.message?.content || '';
 }
 
 const handleCompletion = async (
