@@ -26,6 +26,7 @@ export interface Config {
   maxCodeLinesToOpenai?: number;
   cursorStyleLoading?: CursorStyle;
   cursorStyleNormal?: CursorStyle;
+  assistantMessage?: string;
 }
 
 export const defaultOpenaiParams: OpenaiParams = {
@@ -43,6 +44,7 @@ export const defaultConfig: Config = {
   openaiParams: defaultOpenaiParams,
   cursorStyleLoading: 'underline',
   cursorStyleNormal: 'line',
+  assistantMessage: '',
 };
 
 function minimizeWhitespace(code:string) {
@@ -67,7 +69,7 @@ async function fetchCompletionFromOpenAI(
     body: JSON.stringify({
       messages: [
         {role: "assistant", content: "你是一个代码补全器, 帮我简短地补全这段代码的结尾部分, 请智能结束补全, 只需给出补全的代码, 不需要任何解释"},
-        {role: "user", content: minimizeWhitespace(code)},
+        {role: "user", content: config.assistantMessage + '\n' + minimizeWhitespace(code)},
       ],
       ...config.openaiParams,
     }),
