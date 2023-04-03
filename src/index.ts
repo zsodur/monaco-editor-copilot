@@ -1,4 +1,5 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import { fetchSSE } from './fetchSSE';
 
 interface OpenaiParams {
   model?: string;
@@ -57,31 +58,53 @@ function minimizeWhitespace(code:string) {
 async function fetchCompletionFromOpenAI(
   code: string,
   config: Config,
-  controller: AbortController
-): Promise<string> {
+  controller: AbortController,
+  handleInsertion: (text: string) => void
+): Promise<void> {
+  const handleMessage = (message: string) => {
+    handleInsertion(message);
+  };
 
-  const response = await fetch(`${config.openaiUrl}/v1/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      authorization: `Bearer ${config.openaiKey}`,
-    },
-    body: JSON.stringify({
-      messages: [
-        {role: "assistant", content: "你是一个代码补全器, 帮我简短地补全这段代码的结尾部分, 请智能结束补全, 只需给出补全的代码, 不需要任何解释"},
-        {role: "user", content: config.assistantMessage + '\n' + minimizeWhitespace(code)},
-      ],
-      ...config.openaiParams,
-    }),
-    signal: controller.signal,
-  });
+  let text = ''
 
-  if (!response.ok) {
-    throw new Error(`OpenAI API request failed: ${response.statusText}`);
-  }
-
-  const responseJson = await response.json();
-  return responseJson?.choices?.[0]?.message?.content || '';
+  return new Promise(async (resolve, reject) => {
+    await fetchSSE(`${config.openaiUrl}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        authorization: `Bearer ${config.openaiKey}`,
+      },
+      body: JSON.stringify({
+        stream: true,
+        messages: [
+          {role: "assistant", content: "你是一个代码补全器, 帮我简短地补全这段代码的结尾部分, 请智能结束补全, 只需给出补全的代码, 不需要任何解释"},
+          {role: "user", content: config.assistantMessage + '\n' + minimizeWhitespace(code)},
+        ],
+        ...config.openaiParams,
+      }),
+      signal: controller.signal,
+      onMessage: (data) => {
+        let lastResponse;
+        if (data === "[DONE]") {
+          text = text.trim();
+          return resolve();
+        }
+        try {
+          const response = JSON.parse(data);
+          if ((lastResponse = response == null ? void 0 : response.choices) == null ? void 0 : lastResponse.length) {
+            text += response.choices[0].delta.content || '';
+            handleMessage == null ? void 0 : handleMessage(text);
+          }
+        } catch (err) {
+          console.warn("ChatGPT stream SEE event unexpected error", err);
+          return reject(err);
+        }
+      },
+      onError: (error: any) => {
+        console.error(error);
+      }
+    });
+  })
 }
 
 const handleCompletion = async (
@@ -108,18 +131,9 @@ const handleCompletion = async (
 
   cursorStyleLoading();
 
-  try {
-    let newCode = '';
-    if (config.customCompletionFunction) {
-      newCode = await config.customCompletionFunction(code);
-    } else {
-      newCode = await fetchCompletionFromOpenAI(code, config, controller);
-    }
-    cursorStyleNormal();
-    if (!newCode) {
-      return;
-    }
 
+  let lastText = ''
+  const handleInsertion = (text: string) => {
     const position = editor.getPosition();
     if (!position) {
       return;
@@ -137,11 +151,24 @@ const handleCompletion = async (
           endLineNumber: position.lineNumber,
           endColumn: position.column,
         },
-        text: newCode,
+        text: text.slice(lastText.length),
       },
     ];
 
+    lastText = text
     editor.executeEdits('', edits);
+  };
+
+
+  try {
+    let newCode = '';
+    if (config.customCompletionFunction) {
+      newCode = await config.customCompletionFunction(code);
+      handleInsertion(newCode);
+    } else {
+      await fetchCompletionFromOpenAI(code, config, controller, handleInsertion);
+    }
+    cursorStyleNormal();
   } catch (error) {
     cursorStyleNormal();
     console.error('MonacoEditorCopilot error:', error);
@@ -170,11 +197,15 @@ const MonacoEditorCopilot = (
 
   let controller: AbortController | null = null;
 
-  const cursorPositionChanged = editor.onDidChangeCursorPosition(() => {
+  const cancel  = () => {
     if (controller) {
       controller.abort();
     }
-  });
+    cursorStyleNormal();
+  }
+
+  const keyDownHandler =  editor.onKeyDown(cancel);
+  const mouseDownHandler = editor.onMouseDown(cancel);
 
   let copilotAction: monaco.editor.IActionDescriptor | null = {
     id: 'copilot-completion',
@@ -197,7 +228,8 @@ const MonacoEditorCopilot = (
   editor.addAction(copilotAction);
 
   const dispose = () => {
-    cursorPositionChanged.dispose();
+    keyDownHandler.dispose();
+    mouseDownHandler.dispose();
     if (copilotAction) {
       copilotAction.run = async () => {
         console.warn('Copilot functionality has been disabled');
