@@ -2,7 +2,7 @@
 
 Monaco Editor Copilot is a plugin for the Monaco Editor that integrates OpenAI's GPT-based code completion engine to provide a seamless and intelligent coding experience. This library is designed to work with the Monaco Editor and allows developers to easily configure and customize the plugin to suit their needs.
 
-![demo](./demo.gif)
+![demo](./newDemo.gif)
 
 
 ## Features
